@@ -1,9 +1,11 @@
 package com.example.stellartime;
 
+import static com.example.stellartime.consts.dateTimeFormatterString;
+import static com.example.stellartime.consts.updateClockTimeMillis;
+import static com.example.stellartime.consts.updateGpsTimeSeconds;
 import static com.example.stellartime.utils.getClockString;
 import static com.example.stellartime.utils.getEOT;
-import static com.example.stellartime.utils.getGST;
-import static com.example.stellartime.utils.getJD;
+import static com.example.stellartime.utils.getMinSecFromSec;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -44,8 +47,12 @@ public class MainActivity extends AppCompatActivity {
     private TextView tsolartime;
     private TextView lstime;
     private TextView gstime;
-    private TextView eot;
+    private TextView eottime;
     private TextView tile9;
+
+    // Cachers
+    private GstTime gst;
+    private EOT eot;
 
     private final MutableLiveData<LatLng> latLng = new MutableLiveData<>(new LatLng(55.5, 36.63));
     private final MutableLiveData<Boolean> locationAvailable = new MutableLiveData<>(false);
@@ -53,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private Timer timer;
     private boolean timerState = false;
 
-    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss", Locale.ENGLISH);
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern(dateTimeFormatterString, Locale.ENGLISH);
 
     // Location
     private LocationCallback locationCallback;
@@ -73,15 +80,19 @@ public class MainActivity extends AppCompatActivity {
         tsolartime = findViewById(R.id.tsolartime);
         lstime = findViewById(R.id.lstime);
         gstime = findViewById(R.id.gstime);
-        eot = findViewById(R.id.eot);
+        eottime = findViewById(R.id.eot);
         tile9 = findViewById(R.id.tile9);
+
+        // GST constructor
+        gst = new GstTime();
+        eot = new EOT();
 
         // Location
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         locationRequest = LocationRequest.create();
 
         // 15 second
-        locationRequest.setInterval(15 * 1000);
+        locationRequest.setInterval(updateGpsTimeSeconds * 1000);
         locationRequest.setPriority(Priority.PRIORITY_HIGH_ACCURACY);
 
         locationCallback = new LocationCallback() {
@@ -136,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     onTimeChanged();
                 }
-            }, 0, 200);//put here time 1000 milliseconds=1 second
+            }, 0, updateClockTimeMillis);//put here time 1000 milliseconds=1 second
             timerState = true;
         }
     }
@@ -153,26 +164,19 @@ public class MainActivity extends AppCompatActivity {
         LocalDateTime gtime = time.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
 
         // TIME 3. Mean Solar time ----------------------------------------
-        LocalDateTime ntime = gtime.plusSeconds((long) ((latLng.getValue().longitude / 15) * 3600));
+        // 3600 * 1000 / 15 = 240000
+        LocalDateTime ntime = gtime.plus((long) (latLng.getValue().longitude * 240000), ChronoField.MILLI_OF_DAY.getBaseUnit());
 
         // TIME 4. True Solar time ----------------------------------------
-        // Equation of Time
-        int equationValue = (int) Math.round(getEOT(gtime));
+        // Equation of Time. Cast to long for plusSeconds function
         // True solar time
-        LocalDateTime ttime = ntime.plusSeconds(equationValue);
+        LocalDateTime ttime = ntime.plus((long) (eot.get(gtime) * 1000), ChronoField.MILLI_OF_DAY.getBaseUnit());
 
         // TIME 5. Greenwich Sidereal time --------------------------------
-        // get Julian Date (with current seconds)
-        double jdate = getJD(gtime);
-        // System.out.println("Julian Date = " + jdate);
-        // get Greenwich Sidereal time in degrees
-        double gst = getGST(jdate);
-
-        // GST string
-        String gstString = getClockString(gst % 360 / 15);
+        String gstString = getClockString(gst.get(gtime) % 360 / 15);
 
         // TIME 6. Local Sidereal time -----------------------------------
-        String lstString = getClockString((gst + latLng.getValue().longitude) % 360 / 15);
+        String lstString = getClockString((gst.get(gtime) + latLng.getValue().longitude) % 360 / 15);
 
         // OUTPUT ----------------------------------------------------------
         localtime.setText(new StringBuilder().append("LocalTime:\n").append(dtf.format(time)).toString());
@@ -181,7 +185,8 @@ public class MainActivity extends AppCompatActivity {
         msolartime.setText(new StringBuilder().append("Среднее солнечное время\nMean Solar time:\nClock time:\n").append(dtf.format(ntime)).toString());
         tsolartime.setText(new StringBuilder().append("Истинное солнечное время\nTrue Solar time:\nApparent solar time:\nSundial time:\n").append(dtf.format(ttime)).toString());
 
-        eot.setText(new StringBuilder().append("EOT (NYSS): \n").append(equationValue / 60).append("m ").append(Math.abs(equationValue) % 60).append("s").toString());
+        String equationValueString = getMinSecFromSec(getEOT(gtime));
+        eottime.setText(new StringBuilder().append("EOT (NYSS): \n").append(equationValueString).toString());
 
         lstime.setText(new StringBuilder().append("Местное звёздное время\nLocal Sidereal Time:\n").append(lstString));
         gstime.setText(new StringBuilder().append("Гринвичское звёздное время\nGreenwich Sidereal Time:\n").append(gstString));

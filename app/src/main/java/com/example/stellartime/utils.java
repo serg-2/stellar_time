@@ -47,19 +47,27 @@ public class utils {
         return ((int) Math.floor(365.25 * (year + 4716))) + ((int) Math.floor(30.6001 * (month + 1))) + day + b - 1524.5;
     }
 
+    // Time in hours.
     public static String getClockString(double time) {
         int intHour = (int) Math.floor(time);
         double realMin = (time - (double) intHour) * 60d;
         int intMin = (int) Math.floor(realMin);
-        int intSec = (int) Math.round((realMin - (double) intMin) * 60);
+        double realSec = (realMin - (double) intMin) * 60d;
+        int intSec = (int) Math.floor(realSec);
+        double dSec = (realSec - (double) intSec) * 10d;
 
-        return String.format(Locale.ENGLISH, "%02d:%02d:%02d", intHour, intMin, intSec);
+        return String.format(Locale.ENGLISH, "%02d:%02d:%02d.%d", intHour, intMin, intSec, (int) Math.floor(dSec));
     }
 
-    public static double getGST(double jdate) {
+    public static double getGSTfromJD(double jdate) {
         double T = ((jdate - 2451545.0) / 36525);
         // Mean Sidereal time in degrees at 0 hour UTC this date
         return 280.46061837 + 360.98564736629 * (jdate - 2451545.0) + (0.000387933 * T * T) - (T * T * T / 38710000.0);
+    }
+
+    public static String getMinSecFromSec(double equationValue) {
+        int mins = (int) equationValue / 60;
+        return String.format(Locale.ENGLISH, "%+dm %04.1fs", mins, (float) Math.abs(equationValue) - ((Math.abs(mins) * 60)));
     }
 
     public static double getEOT(LocalDateTime utcTime) {
