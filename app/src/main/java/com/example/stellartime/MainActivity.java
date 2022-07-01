@@ -188,8 +188,8 @@ public class MainActivity extends AppCompatActivity {
         String equationValueString = getMinSecFromSec(getEOT(gtime));
         eottime.setText(new StringBuilder().append("EOT (NYSS): \n").append(equationValueString).toString());
 
-        lstime.setText(new StringBuilder().append("Местное звёздное время\nLocal Sidereal Time:\n").append(lstString));
-        gstime.setText(new StringBuilder().append("Гринвичское звёздное время\nGreenwich Sidereal Time:\n").append(gstString));
+        lstime.setText(new StringBuilder().append("Местное звёздное время\nПрямое восхождение кульминирующего светила:\nLocal (mean) Sidereal Time:\n").append(lstString));
+        gstime.setText(new StringBuilder().append("Гринвичское звёздное время\nЧасовой угол точки овна:\nGreenwich (mean) Sidereal Time:\n").append(gstString));
 
         // Timezone
         TimeZone timeZone = TimeZone.getDefault();
