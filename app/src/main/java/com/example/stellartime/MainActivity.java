@@ -9,6 +9,7 @@ import static com.example.stellartime.utils.getMinSecFromSec;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.MutableLiveData;
 
@@ -71,6 +72,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Turn off dark theme
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+
         setContentView(R.layout.activity_main);
 
         localtime = findViewById(R.id.localtime);
@@ -182,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
         localtime.setText(new StringBuilder().append("LocalTime:\n").append(dtf.format(time)).toString());
         gmttime.setText(new StringBuilder().append("UTC:\n").append(dtf.format(gtime)).toString());
 
-        msolartime.setText(new StringBuilder().append("Среднее солнечное время\nMean Solar time:\nClock time:\n").append(dtf.format(ntime)).toString());
+        msolartime.setText(new StringBuilder().append("Среднее солнечное время\nMean Solar time:\nHour angle of the mean Sun(+12 hours):\n").append(dtf.format(ntime)).toString());
         tsolartime.setText(new StringBuilder().append("Истинное солнечное время\nTrue Solar time:\nApparent solar time:\nSundial time:\n").append(dtf.format(ttime)).toString());
 
         String equationValueString = getMinSecFromSec(getEOT(gtime));
@@ -194,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
         // Timezone
         TimeZone timeZone = TimeZone.getDefault();
         String dst = timeZone.useDaylightTime() ? "yes" : "no";
-        tile9.setText(String.format(Locale.ENGLISH, "TimeZone:\n%+d\nDaylight Savings time:\n%s", timeZone.getRawOffset() / 3600000, dst));
+        tile9.setText(String.format(Locale.ENGLISH, "TimeZone:\n%+d\nDaylight Savings time:\n%s\nDay of Year:%d", timeZone.getRawOffset() / 3600000, dst, time.getDayOfYear()));
 
         // Location
         String locString = locationAvailable.getValue() ? String.format(Locale.ENGLISH, "Время с последнего определения координат: %d", Math.round(System.currentTimeMillis() - lastKnownLocation) / 1000) : "Позиционирование недоступно";
