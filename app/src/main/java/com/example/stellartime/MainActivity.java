@@ -163,6 +163,9 @@ public class MainActivity extends AppCompatActivity {
 
         // TIME 1. Local --------------------------------------------------
         LocalDateTime time = LocalDateTime.now();
+        // Calculating .beats time
+        LocalDateTime beatztime = time.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.ofHoursMinutes(1, 0)).toLocalDateTime();
+        double beats = (beatztime.getHour() * 3600 + beatztime.getMinute() * 60 + beatztime.getSecond()) / 86.4;
 
         // TIME 2. GMT time -----------------------------------------------
         LocalDateTime gtime = time.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
@@ -183,7 +186,8 @@ public class MainActivity extends AppCompatActivity {
         String lstString = getClockString((gst.get(gtime) + latLng.getValue().longitude) % 360 / 15);
 
         // OUTPUT ----------------------------------------------------------
-        localtime.setText(new StringBuilder().append("LocalTime:\n").append(dtf.format(time)).toString());
+        localtime.setText(String.format(Locale.ENGLISH, "LocalTime: %s\n\n.beat time: @%03.3f\n", dtf.format(time), beats));
+
         gmttime.setText(new StringBuilder().append("UTC:\n").append(dtf.format(gtime)).toString());
 
         msolartime.setText(new StringBuilder().append("Среднее солнечное время\nMean Solar time:\nHour angle of the mean Sun(+12 hours):\n").append(dtf.format(ntime)).toString());
