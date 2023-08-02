@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
         LocalDateTime time = LocalDateTime.now();
         // Calculating .beats time
         LocalDateTime beatztime = time.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.ofHoursMinutes(1, 0)).toLocalDateTime();
-        double beats = (beatztime.getHour() * 3600 + beatztime.getMinute() * 60 + beatztime.getSecond()) / 86.4;
+        double beats = (beatztime.getHour() * 3600 + beatztime.getMinute() * 60 + beatztime.getSecond() + beatztime.getNano() / 1000000000d) / 86.4;
 
         // TIME 2. GMT time -----------------------------------------------
         LocalDateTime gtime = time.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
@@ -186,23 +186,23 @@ public class MainActivity extends AppCompatActivity {
         String lstString = getClockString((gst.get(gtime) + latLng.getValue().longitude) % 360 / 15);
 
         // OUTPUT ----------------------------------------------------------
-        localtime.setText(String.format(Locale.ENGLISH, "LocalTime: %s\n\n.beat time: @%03.3f\n", dtf.format(time), beats));
+        localtime.setText(String.format(Locale.ENGLISH, "LocalTime: %s\n", dtf.format(time)));
 
-        gmttime.setText(new StringBuilder().append("UTC:\n").append(dtf.format(gtime)).toString());
+        gmttime.setText(String.format(Locale.ENGLISH, "UTC:\n%s\n\n.beat time:\n@%03.3f\n", dtf.format(gtime), beats));
 
-        msolartime.setText(new StringBuilder().append("Среднее солнечное время\nMean Solar time:\nHour angle of the mean Sun(+12 hours):\n").append(dtf.format(ntime)).toString());
-        tsolartime.setText(new StringBuilder().append("Истинное солнечное время\nTrue Solar time:\nApparent solar time:\nSundial time:\n").append(dtf.format(ttime)).toString());
+        msolartime.setText(new StringBuilder().append("Среднее солнечное время:\nMean Solar time:\nHour angle of the mean Sun(+12 hours):\n").append(dtf.format(ntime)).toString());
+        tsolartime.setText(new StringBuilder().append("Истинное солнечное время:\nTrue Solar time:\nApparent solar time:\nSundial time:\n").append(dtf.format(ttime)).toString());
 
         String equationValueString = getMinSecFromSec(getEOT(gtime));
         eottime.setText(new StringBuilder().append("EOT (NYSS): \n").append(equationValueString).toString());
 
-        lstime.setText(new StringBuilder().append("Местное звёздное время\nПрямое восхождение кульминирующего светила:\nLocal (mean) Sidereal Time:\n").append(lstString));
-        gstime.setText(new StringBuilder().append("Гринвичское звёздное время\nЧасовой угол точки овна:\nGreenwich (mean) Sidereal Time:\n").append(gstString));
+        lstime.setText(new StringBuilder().append("Местное звёздное время:\nПрямое восхождение кульминирующего светила:\nLocal (mean) Sidereal Time:\n").append(lstString));
+        gstime.setText(new StringBuilder().append("Гринвичское звёздное время:\nЧасовой угол точки овна:\nGreenwich (mean) Sidereal Time:\n").append(gstString));
 
         // Timezone
         TimeZone timeZone = TimeZone.getDefault();
         String dst = timeZone.useDaylightTime() ? "yes" : "no";
-        tile9.setText(String.format(Locale.ENGLISH, "TimeZone:\n%+d\nDaylight Savings time:\n%s\nDay of Year:%d", timeZone.getRawOffset() / 3600000, dst, time.getDayOfYear()));
+        tile9.setText(String.format(Locale.ENGLISH, "TimeZone:\n%+d\nDaylight Savings time:\n%s\nDay of Year:\n%d", timeZone.getRawOffset() / 3600000, dst, time.getDayOfYear()));
 
         // Location
         String locString = locationAvailable.getValue() ? String.format(Locale.ENGLISH, "Время с последнего определения координат: %d", Math.round(System.currentTimeMillis() - lastKnownLocation) / 1000) : "Позиционирование недоступно";
