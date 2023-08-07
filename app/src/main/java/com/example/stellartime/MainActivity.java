@@ -1,6 +1,12 @@
 package com.example.stellartime;
 
+import static com.example.stellartime.AstroUtils.getJulianDay;
+import static com.example.stellartime.AstroUtils.getMoonNumber;
+import static com.example.stellartime.AstroUtils.getSunHourAngle;
+import static com.example.stellartime.AstroUtils.getSunInclination;
+import static com.example.stellartime.AstroUtils.getSunriseSunset;
 import static com.example.stellartime.consts.dateTimeFormatterString;
+import static com.example.stellartime.consts.dateTimeFormatterStringWhole;
 import static com.example.stellartime.consts.updateClockTimeMillis;
 import static com.example.stellartime.consts.updateGpsTimeSeconds;
 import static com.example.stellartime.utils.getClockString;
@@ -33,6 +39,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -62,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean timerState = false;
 
     DateTimeFormatter dtf = DateTimeFormatter.ofPattern(dateTimeFormatterString, Locale.ENGLISH);
+    DateTimeFormatter dtfWhole = DateTimeFormatter.ofPattern(dateTimeFormatterStringWhole, Locale.ENGLISH);
 
     // Location
     private LocationCallback locationCallback;
@@ -185,8 +193,19 @@ public class MainActivity extends AppCompatActivity {
         // TIME 6. Local Sidereal time -----------------------------------
         String lstString = getClockString((gst.get(gtime) + latLng.getValue().longitude) % 360 / 15);
 
+        // Timezone
+        TimeZone timeZone = TimeZone.getDefault();
+        String dst = timeZone.useDaylightTime() ? "yes" : "no";
+
+        // Sun Hour Angle
+        double sunIncl = getSunInclination(getJulianDay(Calendar.getInstance()));
+        double hourAngleSun = getSunHourAngle(sunIncl, latLng.getValue().latitude);
+
+        // Sunrise, sunset, noon
+        SunTimes sunTimes = getSunriseSunset(latLng.getValue().longitude, hourAngleSun, timeZone.getRawOffset(), eot.get(gtime));
+
         // OUTPUT ----------------------------------------------------------
-        localtime.setText(String.format(Locale.ENGLISH, "LocalTime: %s\n", dtf.format(time)));
+        localtime.setText(String.format(Locale.ENGLISH, "LocalTime: %s\nTimeZone:\n%+d\nDaylight Savings time:\n%s\nDay of Year:\n%d\nАстрополдень:\nКульминация Солнца:\n%s\n", dtf.format(time), timeZone.getRawOffset() / 3600000, dst, time.getDayOfYear(), dtfWhole.format(sunTimes.getNoon())));
 
         gmttime.setText(String.format(Locale.ENGLISH, "UTC:\n%s\n\n.beat time:\n@%03.3f\n", dtf.format(gtime), beats));
 
@@ -199,15 +218,11 @@ public class MainActivity extends AppCompatActivity {
         lstime.setText(new StringBuilder().append("Местное звёздное время:\nПрямое восхождение кульминирующего светила:\nLocal (mean) Sidereal Time:\n").append(lstString));
         gstime.setText(new StringBuilder().append("Гринвичское звёздное время:\nЧасовой угол точки овна:\nGreenwich (mean) Sidereal Time:\n").append(gstString));
 
-        // Timezone
-        TimeZone timeZone = TimeZone.getDefault();
-        String dst = timeZone.useDaylightTime() ? "yes" : "no";
-        tile9.setText(String.format(Locale.ENGLISH, "TimeZone:\n%+d\nDaylight Savings time:\n%s\nDay of Year:\n%d", timeZone.getRawOffset() / 3600000, dst, time.getDayOfYear()));
+        tile9.setText(String.format(Locale.ENGLISH, "Лунное число: %d\nЛунный день~: %d\nСклонение солнца~: %02.2f\u00B0\nПродолжительность дня~: %02d:%02d\n", getMoonNumber(time.getYear()), (getMoonNumber(time.getYear()) + time.getDayOfMonth() + time.getMonthValue()) % 30, sunIncl, (int) Math.floor(hourAngleSun / 15 * 2), Math.round((hourAngleSun / 15 * 2) % 1 * 60)));
 
         // Location
         String locString = locationAvailable.getValue() ? String.format(Locale.ENGLISH, "Время с последнего определения координат: %d", Math.round(System.currentTimeMillis() - lastKnownLocation) / 1000) : "Позиционирование недоступно";
-        coordinates.setText(new StringBuilder().append("Lat: ").append(latLng.getValue().latitude).append("\n").append("Long: ").append(latLng.getValue().longitude).append("\n").append(locString).toString());
-
+        coordinates.setText(String.format(Locale.ENGLISH, "Lat: %3.7f\nLong: %3.7f\n%s\nВосход~: %s\nЗакат~: %s\n", latLng.getValue().latitude, latLng.getValue().longitude, locString, dtfWhole.format(sunTimes.getSunrise()), dtfWhole.format(sunTimes.getSunset())));
     }
 
     @Override
@@ -229,5 +244,4 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
 }

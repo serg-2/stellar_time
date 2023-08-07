@@ -1,37 +1,11 @@
 package com.example.stellartime;
 
+import static com.example.stellartime.AstroUtils.getNP;
+
 import java.time.LocalDateTime;
 import java.util.Locale;
 
 public class utils {
-    public static double getNP(int year) {
-        switch (year) {
-            case (2022):
-                return 4d + 6d / 24d + 55d / (24d * 60d);
-            case (2023):
-                return 4d + 16d / 24d + 17d / (24d * 60d);
-            case (2024):
-                return 3d + 0d / 24d + 39d / (24d * 60d);
-            case (2025):
-                return 4d + 13d / 24d + 28d / (24d * 60d);
-            case (2026):
-                return 3d + 17d / 24d + 16d / (24d * 60d);
-            case (2027):
-                return 3d + 2d / 24d + 33d / (24d * 60d);
-            case (2028):
-                return 5d + 12d / 24d + 28d / (24d * 60d);
-            case (2029):
-                return 2d + 18d / 24d + 13d / (24d * 60d);
-            case (2030):
-                return 3d + 10d / 24d + 12d / (24d * 60d);
-            case (2031):
-                return 4d + 20d / 24d + 48d / (24d * 60d);
-            default:
-                return 3;
-        }
-
-    }
-
     public static double getJD(LocalDateTime utcTime) {
         int month = utcTime.getMonthValue();
         int year = utcTime.getYear();

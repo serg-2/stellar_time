@@ -4,8 +4,6 @@ import static com.example.stellartime.consts.ageOfGSTSecs;
 import static com.example.stellartime.utils.getGSTfromJD;
 import static com.example.stellartime.utils.getJD;
 
-import android.util.Log;
-
 import java.time.LocalDateTime;
 
 public class GstTime {
