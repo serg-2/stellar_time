@@ -15,6 +15,10 @@ import java.util.Calendar;
 
 public class AstroUtils {
     public static double getNP(int year) {
+        // Смещение времени перигелия от 01 января 00:00
+        // https://ru.m.wikipedia.org/wiki/%D0%A3%D1%80%D0%B0%D0%B2%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5_%D0%B2%D1%80%D0%B5%D0%BC%D0%B5%D0%BD%D0%B8
+        // Данные из таблицы:
+        // http://www.astropixels.com/ephemeris/perap2001.html
         switch (year) {
             case (2023):
                 return 4d + 16d / 24d + 17d / (24d * 60d);
@@ -34,6 +38,44 @@ public class AstroUtils {
                 return 3d + 10d / 24d + 12d / (24d * 60d);
             case (2031):
                 return 4d + 20d / 24d + 48d / (24d * 60d);
+            case (2032):
+                return 3d + 5d / 24d + 11d / (24d * 60d);
+            case (2033):
+                return 4d + 11d / 24d + 51d / (24d * 60d);
+            case (2034):
+                return 4d + 4d / 24d + 47d / (24d * 60d);
+            case (2035):
+                return 3d + 54d / (24d * 60d);
+            case (2036):
+                return 5d + 14d / 24d + 17d / (24d * 60d);
+            case (2037):
+                return 3d + 4d / 24d;
+            case (2038):
+                return 3d + 5d / 24d + 1d / (24d * 60d);
+            case (2039):
+                return 5d + 6d / 24d + 41d / (24d * 60d);
+            case (2040):
+                return 3d + 11d / 24d + 33d / (24d * 60d);
+            case (2041):
+                return 3d + 21d / 24d + 52d / (24d * 60d);
+            case (2042):
+                return 4d + 9d / 24d + 7d / (24d * 60d);
+            case (2043):
+                return 2d + 22d / 24d + 15d / (24d * 60d);
+            case (2044):
+                return 5d + 12d / 24d + 52d / (24d * 60d);
+            case (2045):
+                return 3d + 14d / 24d + 56d / (24d * 60d);
+            case (2046):
+                return 3d + 58d / (24d * 60d);
+            case (2047):
+                return 5d + 11d / 24d + 44d / (24d * 60d);
+            case (2048):
+                return 3d + 18d / 24d + 5d / (24d * 60d);
+            case (2049):
+                return 3d + 10d / 24d + 27d / (24d * 60d);
+            case (2050):
+                return 4d + 19d / 24d + 35d / (24d * 60d);
             default:
                 return 3;
         }
