@@ -1,6 +1,11 @@
 package com.example.stellartime;
 
-public class consts {
+import static lombok.AccessLevel.PRIVATE;
+
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = PRIVATE)
+public abstract class Constants {
     public static final int ageOfGSTSecs = 10;
     public static final int ageOfEOTSecs = 60;
     public static final int updateGpsTimeSeconds = 60;

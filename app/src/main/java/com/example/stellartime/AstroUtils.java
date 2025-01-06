@@ -6,14 +6,16 @@ import static java.lang.Math.asin;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
-import android.util.Log;
-import android.util.Pair;
+import static lombok.AccessLevel.PRIVATE;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.util.Calendar;
 
-public class AstroUtils {
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = PRIVATE)
+public abstract class AstroUtils {
     public static double getNP(int year) {
         // Смещение времени перигелия от 01 января 00:00
         // https://ru.m.wikipedia.org/wiki/%D0%A3%D1%80%D0%B0%D0%B2%D0%BD%D0%B5%D0%BD%D0%B8%D0%B5_%D0%B2%D1%80%D0%B5%D0%BC%D0%B5%D0%BD%D0%B8
@@ -91,9 +93,9 @@ public class AstroUtils {
         int day = julianDay - 2451545;
         // Log.e("Day", " after 1 Jan 2000: " + day);
 
-        // средняя долгота Солнца - исправлённая за аберрацию
+        // средняя долгота Солнца - исправлeнная за аберрацию
         double L = (280.472 + 0.9856474 * day);// * (PI / 180) ;
-        // Log.e("SUN", "Longtitude: " + (280.472 - 0.9856474 * day));
+        // Log.e("SUN", "Longitude: " + (280.472 - 0.9856474 * day));
 
         // средняя аномалия
         double g = (357.528 + 0.9856003 * day);// * (PI / 180);
@@ -101,7 +103,7 @@ public class AstroUtils {
 
         // эклиптическая долгота
         double eL = L + 1.915 * sin(g) + 0.02 * sin(2 * g);
-        // Log.e("SUN", "Ecliptical longtitude: " + eL);
+        // Log.e("SUN", "Ecliptical longitude: " + eL);
 
         // наклонность эклиптики
         double nakl = 23.439 - 0.0000004 * day;
@@ -116,7 +118,7 @@ public class AstroUtils {
 
     public static int getJulianDay(Calendar cal) {
         int year = cal.get(Calendar.YEAR);
-        int month = cal.get(Calendar.MONTH) + 1; //Note January returns 0
+        int month = cal.get(Calendar.MONTH) + 1; // NB: January returns 0
         int date = cal.get(Calendar.DATE);
         return (1461 * (year + 4800 + (month - 14) / 12)) / 4
                 + (367 * (month - 2 - 12 * ((month - 14) / 12))) / 12
@@ -126,7 +128,6 @@ public class AstroUtils {
     public static double getSunHourAngle(double sunIncl, double latitude) {
         // cosinus sun hour angle
         double cosW = (sin(-0.0144) - sin(latitude * (PI / 180)) * sin(sunIncl * (PI / 180))) / (cos(latitude * (PI / 180)) * cos(sunIncl * (PI / 180)));
-
         return 180 / PI * acos(cosW);
     }
 

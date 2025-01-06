@@ -5,13 +5,13 @@ import static com.example.stellartime.AstroUtils.getMoonNumber;
 import static com.example.stellartime.AstroUtils.getSunHourAngle;
 import static com.example.stellartime.AstroUtils.getSunInclination;
 import static com.example.stellartime.AstroUtils.getSunriseSunset;
-import static com.example.stellartime.consts.dateTimeFormatterString;
-import static com.example.stellartime.consts.dateTimeFormatterStringWhole;
-import static com.example.stellartime.consts.updateClockTimeMillis;
-import static com.example.stellartime.consts.updateGpsTimeSeconds;
-import static com.example.stellartime.utils.getClockString;
-import static com.example.stellartime.utils.getEOT;
-import static com.example.stellartime.utils.getMinSecFromSec;
+import static com.example.stellartime.Constants.dateTimeFormatterString;
+import static com.example.stellartime.Constants.dateTimeFormatterStringWhole;
+import static com.example.stellartime.Constants.updateClockTimeMillis;
+import static com.example.stellartime.Constants.updateGpsTimeSeconds;
+import static com.example.stellartime.Helpers.getClockString;
+import static com.example.stellartime.Helpers.getEOT;
+import static com.example.stellartime.Helpers.getMinSecFromSec;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,7 +24,9 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -101,22 +103,29 @@ public class MainActivity extends AppCompatActivity {
 
         // Location
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        locationRequest = LocationRequest.create();
 
+        /* DEPRECATED
         // 15 second
+        locationRequest = LocationRequest.create();
         locationRequest.setInterval(updateGpsTimeSeconds * 1000);
         locationRequest.setPriority(Priority.PRIORITY_HIGH_ACCURACY);
+         */
+
+        locationRequest = new LocationRequest.Builder(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                updateGpsTimeSeconds * 1000
+        ).build();
 
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
                 super.onLocationResult(locationResult);
                 List<Location> locationList = locationResult.getLocations();
-                if (locationList.size() > 0) {
+                if (!locationList.isEmpty()) {
                     //The last location in the list is the newest
                     Location location = locationList.get(locationList.size() - 1);
 
-                    // Log.i("Stellar Time", "Location: " + location.getLatitude() + " " + location.getLongitude());
+                    Log.d("Stellar Time", "Location: " + location.getLatitude() + " " + location.getLongitude());
                     latLng.postValue(new LatLng(location.getLatitude(), location.getLongitude()));
                     locationAvailable.postValue(true);
                     lastKnownLocation = System.currentTimeMillis();
@@ -154,12 +163,25 @@ public class MainActivity extends AppCompatActivity {
         // Timer
         if (!timerState) {
             timer = new Timer();
+
+            /* DEPRECATED
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
                     onTimeChanged();
                 }
             }, 0, updateClockTimeMillis);//put here time 1000 milliseconds=1 second
+             */
+
+            timer.schedule(new TimerTask() {
+                               @Override
+                               public void run() {
+                                   onTimeChanged();
+                               }
+                           },
+                    0,
+                    updateClockTimeMillis //put here time 1000 milliseconds=1 second
+            );
             timerState = true;
         }
     }
@@ -187,42 +209,97 @@ public class MainActivity extends AppCompatActivity {
         // True solar time
         LocalDateTime ttime = ntime.plus((long) (eot.get(gtime) * 1000), ChronoField.MILLI_OF_DAY.getBaseUnit());
 
-        // TIME 5. Greenwich Sidereal time --------------------------------
-        String gstString = getClockString(gst.get(gtime) % 360 / 15);
-
-        // TIME 6. Local Sidereal time -----------------------------------
-        String lstString = getClockString((gst.get(gtime) + latLng.getValue().longitude) % 360 / 15);
-
         // Timezone
         TimeZone timeZone = TimeZone.getDefault();
         String dst = timeZone.useDaylightTime() ? "yes" : "no";
 
         // Sun Hour Angle
-        double sunIncl = getSunInclination(getJulianDay(Calendar.getInstance()));
-        double hourAngleSun = getSunHourAngle(sunIncl, latLng.getValue().latitude);
+        double sunInclination = getSunInclination(getJulianDay(Calendar.getInstance()));
+        double hourAngleSun = getSunHourAngle(
+                sunInclination,
+                latLng.getValue().latitude
+        );
 
         // Sunrise, sunset, noon
         SunTimes sunTimes = getSunriseSunset(latLng.getValue().longitude, hourAngleSun, timeZone.getRawOffset(), eot.get(gtime));
 
-        // OUTPUT ----------------------------------------------------------
-        localtime.setText(String.format(Locale.ENGLISH, "LocalTime: %s\nTimeZone:\n%+d\nDaylight Savings time:\n%s\nDay of Year:\n%d\nАстрополдень:\nКульминация Солнца:\n%s\n", dtf.format(time), timeZone.getRawOffset() / 3600000, dst, time.getDayOfYear(), dtfWhole.format(sunTimes.getNoon())));
-
-        gmttime.setText(String.format(Locale.ENGLISH, "UTC:\n%s\n\n.beat time:\n@%03.3f\n", dtf.format(gtime), beats));
-
-        msolartime.setText(new StringBuilder().append("Среднее солнечное время:\nMean Solar time:\nHour angle of the mean Sun(+12 hours):\n").append(dtf.format(ntime)).toString());
-        tsolartime.setText(new StringBuilder().append("Истинное солнечное время:\nTrue Solar time:\nApparent solar time:\nSundial time:\n").append(dtf.format(ttime)).toString());
-
-        String equationValueString = getMinSecFromSec(getEOT(gtime));
-        eottime.setText(new StringBuilder().append("EOT (NYSS): \n").append(equationValueString).toString());
-
-        lstime.setText(new StringBuilder().append("Местное звёздное время:\nПрямое восхождение кульминирующего светила:\nLocal (mean) Sidereal Time:\n").append(lstString));
-        gstime.setText(new StringBuilder().append("Гринвичское звёздное время:\nЧасовой угол точки овна:\nGreenwich (mean) Sidereal Time:\n").append(gstString));
-
-        tile9.setText(String.format(Locale.ENGLISH, "Лунное число: %d\nЛунный день~: %d\nСклонение солнца~: %02.2f\u00B0\nПродолжительность дня~: %02d:%02d\n", getMoonNumber(time.getYear()), (getMoonNumber(time.getYear()) + time.getDayOfMonth() + time.getMonthValue()) % 30, sunIncl, (int) Math.floor(hourAngleSun / 15 * 2), Math.round((hourAngleSun / 15 * 2) % 1 * 60)));
+        String localSiderealTime = getClockString((gst.get(gtime) + latLng.getValue().longitude) % 360 / 15);
 
         // Location
-        String locString = locationAvailable.getValue() ? String.format(Locale.ENGLISH, "Время с последнего определения координат: %d", Math.round(System.currentTimeMillis() - lastKnownLocation) / 1000) : "Позиционирование недоступно";
-        coordinates.setText(String.format(Locale.ENGLISH, "Lat: %3.7f\nLong: %3.7f\n%s\nВосход~: %s\nЗакат~: %s\n", latLng.getValue().latitude, latLng.getValue().longitude, locString, dtfWhole.format(sunTimes.getSunrise()), dtfWhole.format(sunTimes.getSunset())));
+        String locString = Boolean.TRUE.equals(locationAvailable.getValue()) ?
+                String.format(
+                        Locale.ENGLISH,
+                        "Время с последнего определения координат: %d",
+                        Math.round(System.currentTimeMillis() - lastKnownLocation) / 1000) :
+                "Позиционирование недоступно";
+
+        // PRE-OUTPUT ------------------------------------------------------
+        String localTimeText = String.format(
+                Locale.ENGLISH,
+                "LocalTime: %s\nTimeZone:\n%+d\nDaylight Savings time:\n%s\nDay of Year:\n%d\nАстрополдень:\nКульминация Солнца:\n%s\n",
+                dtf.format(time),
+                timeZone.getRawOffset() / 3600000,
+                dst,
+                time.getDayOfYear(),
+                dtfWhole.format(sunTimes.getNoon())
+        );
+
+        String tile9Text = String.format(
+                Locale.ENGLISH,
+                "Лунное число: %d\nЛунный день~: %d\nСклонение солнца~: %02.2f\u00B0\nПродолжительность дня~: %02d:%02d\n",
+                getMoonNumber(time.getYear()),
+                (getMoonNumber(time.getYear()) + time.getDayOfMonth() + time.getMonthValue()) % 30,
+                sunInclination,
+                (int) Math.floor(hourAngleSun / 15 * 2),
+                Math.round((hourAngleSun / 15 * 2) % 1 * 60)
+        );
+
+        // OUTPUT ----------------------------------------------------------
+        runOnUiThread(() -> {
+            localtime.setText(localTimeText);
+            gmttime.setText(String.format(
+                    Locale.ENGLISH,
+                    "UTC:\n%s\n\n.beat time:\n@%03.3f\n",
+                    dtf.format(gtime),
+                    beats
+            ));
+            msolartime.setText(String.format(
+                    Locale.ENGLISH,
+                    "Среднее солнечное время:\nMean Solar time:\nHour angle of the mean Sun(+12 hours):\n%s",
+                    dtf.format(ntime)
+            ));
+            tsolartime.setText(String.format(
+                    Locale.ENGLISH,
+                    "Истинное солнечное время:\nTrue Solar time:\nApparent solar time:\nSundial time:\n%s",
+                    dtf.format(ttime)
+            ));
+            eottime.setText(String.format(
+                    Locale.ENGLISH,
+                    "EOT (NYSS): \n%s",
+                    getMinSecFromSec(getEOT(gtime))
+            ));
+            lstime.setText(String.format(
+                    Locale.ENGLISH,
+                    "Местное звёздное время:\nПрямое восхождение кульминирующего светила:\nLocal (mean) Sidereal Time:\n%s",
+                    localSiderealTime
+            ));
+            // TIME 5. Greenwich Sidereal time --------------------------------
+            gstime.setText(String.format(
+                    Locale.ENGLISH,
+                    "Гринвичское звёздное время:\nЧасовой угол точки овна:\nGreenwich (mean) Sidereal Time:\n%s",
+                    getClockString(gst.get(gtime) % 360 / 15)
+            ));
+            tile9.setText(tile9Text);
+            coordinates.setText(String.format(
+                    Locale.ENGLISH,
+                    "Lat: %3.7f\nLong: %3.7f\n%s\nВосход~: %s\nЗакат~: %s\n",
+                    latLng.getValue().latitude,
+                    latLng.getValue().longitude,
+                    locString,
+                    dtfWhole.format(sunTimes.getSunrise()),
+                    dtfWhole.format(sunTimes.getSunset())
+            ));
+        });
     }
 
     @Override
@@ -235,10 +312,10 @@ public class MainActivity extends AppCompatActivity {
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper());
-                        // Log.i("Stellar Time", "PERMISSION ACQUIRED!");
+                        Log.d("Stellar Time", "PERMISSION ACQUIRED!");
                     }
                 } else {
-                    // Toast.makeText(this, "Permission denied", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Permission denied", Toast.LENGTH_LONG).show();
                 }
                 break;
             }

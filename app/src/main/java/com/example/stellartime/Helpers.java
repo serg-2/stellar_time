@@ -2,10 +2,16 @@ package com.example.stellartime;
 
 import static com.example.stellartime.AstroUtils.getNP;
 
+import static lombok.AccessLevel.PRIVATE;
+
 import java.time.LocalDateTime;
 import java.util.Locale;
 
-public class utils {
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = PRIVATE)
+public abstract class Helpers {
+
     public static double getJD(LocalDateTime utcTime) {
         int month = utcTime.getMonthValue();
         int year = utcTime.getYear();

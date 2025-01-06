@@ -1,8 +1,8 @@
 package com.example.stellartime;
 
-import static com.example.stellartime.consts.ageOfGSTSecs;
-import static com.example.stellartime.utils.getGSTfromJD;
-import static com.example.stellartime.utils.getJD;
+import static com.example.stellartime.Constants.ageOfGSTSecs;
+import static com.example.stellartime.Helpers.getGSTfromJD;
+import static com.example.stellartime.Helpers.getJD;
 
 import java.time.LocalDateTime;
 
