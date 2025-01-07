@@ -1,6 +1,6 @@
 package com.example.stellartime;
 
-import static com.example.stellartime.Constants.ageOfGSTSecs;
+import static com.example.stellartime.Constants.maxAgeOfGSTSecs;
 import static com.example.stellartime.Helpers.getGSTfromJD;
 import static com.example.stellartime.Helpers.getJD;
 
@@ -8,17 +8,17 @@ import java.time.LocalDateTime;
 
 public class GstTime {
     private double gst;
-    private long ts;
+    private long lastGSTTimestamp;
 
     public GstTime() {
-        ts = 0;
+        lastGSTTimestamp = 0;
     }
 
     // Result in Degrees
     public double get(LocalDateTime gtime) {
         // check GST value too old
-        long ageOfGst = System.currentTimeMillis() - ts;
-        if (Math.abs(ageOfGst / 1000) > ageOfGSTSecs) {
+        long ageOfGst = System.currentTimeMillis() - lastGSTTimestamp;
+        if (Math.abs(ageOfGst / 1000) > maxAgeOfGSTSecs) {
             // Log.e("Stellar time", "Updating Gst time.");
             updateGst(gtime);
             return gst;
@@ -36,7 +36,7 @@ public class GstTime {
         // System.out.println("Julian Date = " + jdate);
         // get Greenwich Sidereal time in degrees
         gst = getGSTfromJD(jdate);
-        ts = System.currentTimeMillis();
+        lastGSTTimestamp = System.currentTimeMillis();
     }
 
 }

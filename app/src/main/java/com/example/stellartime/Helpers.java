@@ -36,7 +36,14 @@ public abstract class Helpers {
         int intSec = (int) Math.floor(realSec);
         double dSec = (realSec - (double) intSec) * 10d;
 
-        return String.format(Locale.ENGLISH, "%02d:%02d:%02d.%d", intHour, intMin, intSec, (int) Math.floor(dSec));
+        return String.format(
+                Locale.ENGLISH,
+                "%02d:%02d:%02d.%d",
+                intHour,
+                intMin,
+                intSec,
+                (int) Math.floor(dSec)
+        );
     }
 
     public static double getGSTfromJD(double jdate) {
@@ -47,15 +54,17 @@ public abstract class Helpers {
 
     public static String getMinSecFromSec(double equationValue) {
         int mins = (int) equationValue / 60;
-        return String.format(Locale.ENGLISH, "%+dm %04.1fs", mins, (float) Math.abs(equationValue) - ((Math.abs(mins) * 60)));
+        return String.format(
+                Locale.ENGLISH,
+                "%+dm %04.1fs",
+                mins,
+                (float) Math.abs(equationValue) - ((Math.abs(mins) * 60))
+        );
     }
 
     public static double getEOT(LocalDateTime utcTime) {
         // Day of Year
         double N = utcTime.getDayOfYear() + utcTime.getHour() / 24d + utcTime.getMinute() / (24d * 60d) + utcTime.getSecond() / (24d * 3600d);
-
-        // Day correction
-        N = N - 1;
 
         // склонение Земли в радианах
         double lambda = 23.4372d * Math.PI / 180d;

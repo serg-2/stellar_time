@@ -8,6 +8,10 @@ import static java.lang.Math.sin;
 
 import static lombok.AccessLevel.PRIVATE;
 
+import androidx.lifecycle.MutableLiveData;
+
+import com.google.android.gms.maps.model.LatLng;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.util.Calendar;
@@ -131,16 +135,29 @@ public abstract class AstroUtils {
         return 180 / PI * acos(cosW);
     }
 
-    public static SunTimes getSunriseSunset(double longitude, double hourAngleSun, int timeZoneRawOffset, double EOTOffset) {
+    public static SunParameters getSunParameters(MutableLiveData<LatLng> latLng, int timeZoneRawOffset, double EOTOffset) {
+        // Sun inclination
+        double sunInclination = getSunInclination(getJulianDay(Calendar.getInstance()));
+        // Sun Hour Angle
+        double hourAngleSun = getSunHourAngle(
+                sunInclination,
+                latLng.getValue().latitude
+        );
+        // get NOON
         LocalDateTime noon = LocalDateTime.parse("2023-01-01T12:00:00");
         LocalDateTime noonAtTimeZone = noon.plus(timeZoneRawOffset, ChronoField.MILLI_OF_DAY.getBaseUnit());
-        LocalDateTime meanNoon = noonAtTimeZone.minus((long) (longitude * 240000), ChronoField.MILLI_OF_DAY.getBaseUnit());
+        LocalDateTime meanNoon = noonAtTimeZone.minus((long) (latLng.getValue().longitude * 240000), ChronoField.MILLI_OF_DAY.getBaseUnit());
         LocalDateTime meanNoonEot = meanNoon.minus((long) (EOTOffset * 1000), ChronoField.MILLI_OF_DAY.getBaseUnit());
-
         LocalDateTime sunrise = meanNoonEot.minus((long) ((hourAngleSun / 15) * 3600 * 1000), ChronoField.MILLI_OF_DAY.getBaseUnit());
         LocalDateTime sunset = meanNoonEot.plus((long) ((hourAngleSun / 15) * 3600 * 1000), ChronoField.MILLI_OF_DAY.getBaseUnit());
 
-        return new SunTimes(meanNoonEot, sunrise, sunset);
+        return new SunParameters(
+                meanNoonEot,
+                sunrise,
+                sunset,
+                sunInclination,
+                hourAngleSun
+        );
     }
 
 }
