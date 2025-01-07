@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class Tiles {
 
-    public static String getTile1LocalTime(LocalDateTime time, LocalDateTime noon) {
+    public static String getTile1LocalTime(LocalDateTime time) {
         return String.format(
                 Locale.ENGLISH,
                 """
@@ -31,14 +31,11 @@ public abstract class Tiles {
                         TimeZone: %+d
                         Daylight Savings Time: %s
                         Day of Year: %d
-                        Астрополдень:
-                        Кульминация Солнца:
-                        %s""",
+                        """,
                 dtf.format(time),
                 TimeZone.getDefault().getRawOffset() / 3600000,
                 TimeZone.getDefault().useDaylightTime() ? "yes" : "no",
-                time.getDayOfYear(),
-                dtfWhole.format(noon)
+                time.getDayOfYear()
         );
     }
 
@@ -46,10 +43,10 @@ public abstract class Tiles {
         return String.format(
                 Locale.ENGLISH,
                 """
-                Среднее солнечное время:
-                Mean Solar time:
-                Hour angle of the mean Sun(+12 hours):
-                %s""",
+                        Среднее солнечное время:
+                        Mean Solar time:
+                        Hour angle of the mean Sun(+12 hours):
+                        %s""",
                 dtf.format(ntime)
         );
     }
@@ -58,15 +55,15 @@ public abstract class Tiles {
         return String.format(
                 Locale.ENGLISH,
                 """
-                Местное звёздное время:
-                Прямое восхождение кульминирующего светила:
-                Local (mean) Sidereal Time:
-                %s""",
+                        Местное звёздное время:
+                        Прямое восхождение кульминирующего светила:
+                        Local (mean) Sidereal Time:
+                        %s""",
                 localSiderealTime
         );
     }
 
-    public static String getTile4GMTAndBeatsTime(LocalDateTime time, LocalDateTime gtime) {
+    public static String getTile4GMTAndBeatsTime(LocalDateTime time, LocalDateTime gtime, LocalDateTime noon) {
         // Calculating .beats time
         LocalDateTime beatztime = time.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.ofHoursMinutes(1, 0)).toLocalDateTime();
         double beats = (beatztime.getHour() * 3600 + beatztime.getMinute() * 60 + beatztime.getSecond() + beatztime.getNano() / 1000000000d) / 86.4;
@@ -76,11 +73,16 @@ public abstract class Tiles {
                 """
                         UTC:
                         %s
-                        
+                                                
                         .beat time:
-                        @%03.3f""",
+                        @%03.3f
+                                                
+                        Астрополдень:
+                        Кульминация Солнца:
+                        %s""",
                 dtf.format(gtime),
-                beats
+                beats,
+                dtfWhole.format(noon)
         );
     }
 
@@ -88,12 +90,12 @@ public abstract class Tiles {
         return String.format(
                 Locale.ENGLISH,
                 """
-                Истинное солнечное время:
-                Астрономическое время:
-                True Solar time:
-                Apparent solar time:
-                Sundial time:
-                %s""",
+                        Истинное солнечное время:
+                        Астрономическое время:
+                        True Solar time:
+                        Apparent solar time:
+                        Sundial time:
+                        %s""",
                 dtf.format(trueSolarTime)
         );
     }
@@ -114,11 +116,11 @@ public abstract class Tiles {
         return String.format(
                 Locale.ENGLISH,
                 """
-                Lat: %3.7f
-                Long: %3.7f
-                %s
-                Восход~: %s
-                Закат~: %s""",
+                        Lat: %3.7f
+                        Long: %3.7f
+                        %s
+                        Восход~: %s
+                        Закат~: %s""",
                 location.getValue().latitude,
                 location.getValue().longitude,
                 locationString,

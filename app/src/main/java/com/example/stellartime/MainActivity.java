@@ -196,10 +196,10 @@ public class MainActivity extends AppCompatActivity {
         LocalDateTime trueSolarTime = meanSolarTime.plus((long) (eot.getSecs(gmt) * 1000), ChronoField.MILLI_OF_DAY.getBaseUnit());
 
         // OUTPUT ----------------------------------------------------------
-        sendMessage(R.id.localtime, getTile1LocalTime(time, sunParameters.getNoon()));
+        sendMessage(R.id.localtime, getTile1LocalTime(time));
         sendMessage(R.id.msolartime, getTile2MeanSolarTime(meanSolarTime));
         sendMessage(R.id.lstime, getTile3LocalSiderealTime(localSiderealTime));
-        sendMessage(R.id.gmttime, getTile4GMTAndBeatsTime(time, gmt));
+        sendMessage(R.id.gmttime, getTile4GMTAndBeatsTime(time, gmt, sunParameters.getNoon()));
         sendMessage(R.id.tsolartime, getTile5TrueSolarTime(trueSolarTime));
         sendMessage(R.id.gstime, getTile6GreenwichSiderealTime(gst, gmt));
         sendMessage(R.id.coordinates, getTile7LocationAndSun(location, sunParameters, getLocationString()));

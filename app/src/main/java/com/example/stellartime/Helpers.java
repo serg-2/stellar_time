@@ -75,7 +75,9 @@ public abstract class Helpers {
         double omega = 2d * Math.PI / 365.25636;
 
         // Угол (средний). Число дней + 10, так как Солнечный год начинается 21 декабря.
-        double alpha = omega * ((N + 10d) % 365d);
+        // Может 11 лучше ?
+        // double alpha = omega * ((N + 10d) % 365d);
+        double alpha = omega * ((N + 11d) % 365d);
 
         // Дата перигея по справочнику: http://www.astropixels.com/ephemeris/perap2001.html от 1 января.
         // с поправкой на 1 день
@@ -93,15 +95,12 @@ public abstract class Helpers {
     }
 
     // In seconds
-    public static double getEOT2(LocalDateTime utcTime) {
-        // Day of Year с поправкой на 1 день
-        double N = utcTime.getDayOfYear() + utcTime.getHour() / 24d + utcTime.getMinute() / (24d * 60d) + utcTime.getSecond() / (24d * 3600d);
-
+    // DEPRECATED
+    public static double getEOTSimple(LocalDateTime utcTime) {
+        double N = utcTime.getDayOfYear();
         double B = 2 * Math.PI * (N - 81) / 365d;
-
-        double E = 7.53 * Math.cos(B) + 1.5 * Math.sin(B) - 9.87 * Math.sin(2 * B);
-
-        return E * -1 * 60;
+        double E = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
+        return E * 60;
     }
 
 }

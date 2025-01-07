@@ -2,7 +2,7 @@ package com.example.stellartime;
 
 import static com.example.stellartime.Constants.maxAgeOfEOTSecs;
 import static com.example.stellartime.Helpers.getEOT;
-import static com.example.stellartime.Helpers.getEOT2;
+import static com.example.stellartime.Helpers.getEOTSimple;
 
 import android.util.Log;
 
@@ -29,7 +29,6 @@ public class EOT {
     private void updateEOT(LocalDateTime gtime) {
         eotSecs = getEOT(gtime);
         lastEOTTimestamp = System.currentTimeMillis();
-//        Log.e("EOT1", "Value: " + eotSecs);
-//        Log.e("EOT2", "Value: " + getEOT2(gtime));
+        // Log.d("EOT", "Value: " + eotSecs/60);
     }
 }
