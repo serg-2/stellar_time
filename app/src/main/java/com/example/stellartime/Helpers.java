@@ -58,34 +58,50 @@ public abstract class Helpers {
                 Locale.ENGLISH,
                 "%+dm %04.1fs",
                 mins,
-                (float) Math.abs(equationValue) - ((Math.abs(mins) * 60))
+                Math.abs(equationValue) - ((Math.abs(mins) * 60))
         );
     }
 
+    // In seconds
     public static double getEOT(LocalDateTime utcTime) {
-        // Day of Year
+        // Day of Year с поправкой на 1 день
         double N = utcTime.getDayOfYear() + utcTime.getHour() / 24d + utcTime.getMinute() / (24d * 60d) + utcTime.getSecond() / (24d * 3600d);
 
+        N = N - 1;
         // склонение Земли в радианах
         double lambda = 23.4372d * Math.PI / 180d;
-        // Угловая скорость полного оборота
+
+        // Угловая скорость полного оборота. рад/день
         double omega = 2d * Math.PI / 365.25636;
 
         // Угол (средний). Число дней + 10, так как Солнечный год начинается 21 декабря.
         double alpha = omega * ((N + 10d) % 365d);
 
         // Дата перигея по справочнику: http://www.astropixels.com/ephemeris/perap2001.html от 1 января.
-        double np = getNP(utcTime.getYear());
+        // с поправкой на 1 день
+        double np = getNP(utcTime.getYear()) - 1d;
 
         // угол элиптической орбиты от перигея (радианы)
         // под которым Земля движется от точки солнцестояния до угла даты D, поправку первого порядка на эксцентриситет Земли по орбите
-        double beta = alpha + 0.03340560188317d * Math.sin(omega * ((N - np + 365d) % 365d));
+        double beta = alpha + 0.03340560188317d * Math.sin(omega * ((N - np + 365) % 365d));
         // угловая коррекция
         // разница между углами, перемещаемыми со средней скоростью, и со скорректированной скоростью, проецируемой на экваториальную плоскость, и деленными на 180, чтобы получить разницу в «полуоборотах».
         double gamma = (alpha - Math.atan(Math.tan(beta) / Math.cos(lambda))) / Math.PI;
 
         // EOT in seconds.
         return 43200d * (gamma - Math.round(gamma));
+    }
+
+    // In seconds
+    public static double getEOT2(LocalDateTime utcTime) {
+        // Day of Year с поправкой на 1 день
+        double N = utcTime.getDayOfYear() + utcTime.getHour() / 24d + utcTime.getMinute() / (24d * 60d) + utcTime.getSecond() / (24d * 3600d);
+
+        double B = 2 * Math.PI * (N - 81) / 365d;
+
+        double E = 7.53 * Math.cos(B) + 1.5 * Math.sin(B) - 9.87 * Math.sin(2 * B);
+
+        return E * -1 * 60;
     }
 
 }

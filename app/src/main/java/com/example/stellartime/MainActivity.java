@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
         LocalDateTime gmt = time.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
 
         // Sunrise, sunset, noon, inclination, sun hour angle
-        SunParameters sunParameters = getSunParameters(location, TimeZone.getDefault().getRawOffset(), eot.get(gmt));
+        SunParameters sunParameters = getSunParameters(location, TimeZone.getDefault().getRawOffset(), eot.getSecs(gmt));
         // Mean Solar time ----------------------------------------
         // 3600 * 1000 / 15 = 240000
         LocalDateTime meanSolarTime = gmt.plus((long) (location.getValue().longitude * 240000), ChronoField.MILLI_OF_DAY.getBaseUnit());
@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
         // True Solar time ----------------------------------------
         // Equation of Time. Cast to long for plusSeconds function
         // True solar time
-        LocalDateTime trueSolarTime = meanSolarTime.plus((long) (eot.get(gmt) * 1000), ChronoField.MILLI_OF_DAY.getBaseUnit());
+        LocalDateTime trueSolarTime = meanSolarTime.plus((long) (eot.getSecs(gmt) * 1000), ChronoField.MILLI_OF_DAY.getBaseUnit());
 
         // OUTPUT ----------------------------------------------------------
         sendMessage(R.id.localtime, getTile1LocalTime(time, sunParameters.getNoon()));
