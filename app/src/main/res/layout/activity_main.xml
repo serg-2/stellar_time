@@ -95,7 +95,13 @@
             android:id="@+id/moon"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1.4"
+            android:layout_weight="0.6"
+            android:gravity="center_vertical|center" />
+        <TextView
+            android:id="@+id/zodiac"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.8"
             android:gravity="center_vertical|center" />
 
     </LinearLayout>

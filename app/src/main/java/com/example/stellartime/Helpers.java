@@ -105,33 +105,6 @@ public abstract class Helpers {
         return E * 60;
     }
 
-    public static String getMoonZodiac(double L0) {
-        if (L0 < 33.18) {
-            return "Pisces";
-        } else if (L0 < 51.16) {
-            return "Aries";
-        } else if (L0 < 93.44) {
-            return "Taurus";
-        } else if (L0 < 119.48) {
-            return "Gemini";
-        } else if (L0 < 135.30) {
-            return "Cancer";
-        } else if (L0 < 173.34) {
-            return "Leo";
-        } else if (L0 < 224.17) {
-            return "Virgo";
-        } else if (L0 < 242.57) {
-            return "Libra";
-        } else if (L0 < 271.26) {
-            return "Scorpio";
-        } else if (L0 < 302.49) {
-            return "Sagittarius";
-        } else if (L0 < 311.72) {
-            return "Capricorn";
-        } else if (L0 < 348.58) {
-            return "Aquarius";
-        }
-        return "Pisces";
-    }
+
 
 }

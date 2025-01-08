@@ -7,7 +7,7 @@ import static com.example.stellartime.Constants.MSG_KEY;
 import static com.example.stellartime.Constants.updateClockTimeMillis;
 import static com.example.stellartime.Constants.updateGpsTimeSeconds;
 import static com.example.stellartime.Helpers.getClockString;
-import static com.example.stellartime.Helpers.getMoonZodiac;
+import static com.example.stellartime.Tiles.getTile11Zodiac;
 import static com.example.stellartime.Tiles.getTile1LocalTime;
 import static com.example.stellartime.Tiles.getTile2MeanSolarTime;
 import static com.example.stellartime.Tiles.getTile3LocalSiderealTime;
@@ -18,6 +18,7 @@ import static com.example.stellartime.Tiles.getTile7Location;
 import static com.example.stellartime.Tiles.getTile8Solar;
 import static com.example.stellartime.Tiles.getTile9EOT;
 import static com.example.stellartime.Tiles.getTile10Moon;
+import static com.example.stellartime.Zodiac.getMoonZodiac;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -218,7 +219,8 @@ public class MainActivity extends AppCompatActivity {
         sendMessage(R.id.coordinates, getTile7Location(location, getLocationString()));
         sendMessage(R.id.tsolaradd, getTile8Solar(sunParameters));
         sendMessage(R.id.eot, getTile9EOT(utc, sunParameters.getSunInclination()));
-        sendMessage(R.id.moon, getTile10Moon(time, moonPhase, zodiac));
+        sendMessage(R.id.moon, getTile10Moon(time, moonPhase));
+        sendMessage(R.id.zodiac, getTile11Zodiac(zodiac));
     }
 
     private String getLocationString() {

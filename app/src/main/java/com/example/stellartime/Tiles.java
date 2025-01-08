@@ -7,6 +7,10 @@ import static com.example.stellartime.Constants.dtfWhole;
 import static com.example.stellartime.Helpers.getClockString;
 import static com.example.stellartime.Helpers.getEOT;
 import static com.example.stellartime.Helpers.getMinSecFromSec;
+import static com.example.stellartime.Zodiac.getAstronomicalSign;
+import static com.example.stellartime.Zodiac.getSiderealSign;
+import static com.example.stellartime.Zodiac.getTropicalSign1;
+import static com.example.stellartime.Zodiac.getTropicalSign2;
 import static lombok.AccessLevel.PRIVATE;
 
 import androidx.lifecycle.MutableLiveData;
@@ -16,6 +20,7 @@ import com.google.android.gms.maps.model.LatLng;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -29,10 +34,10 @@ public abstract class Tiles {
                 Locale.ENGLISH,
                 """
                         Local Time: %s
-                        
+                                                
                         TimeZone: %+d
                         Daylight Savings Time: %s
-                        
+                                                
                         Day of Year: %d
                         """,
                 dtf.format(time),
@@ -76,7 +81,7 @@ public abstract class Tiles {
                 """
                         UTC:
                         %s
-                        
+                                                
                         .beat time:
                         @%03.3f""",
                 dtf.format(gtime),
@@ -116,7 +121,7 @@ public abstract class Tiles {
                 """
                         Lat: %3.7f
                         Long: %3.7f
-                        
+                                                
                         %s""",
                 location.getValue().latitude,
                 location.getValue().longitude,
@@ -148,28 +153,44 @@ public abstract class Tiles {
                 """
                         EOT (NYSS):
                         %s
-                        
-                        
+                                                
+                                                
                         Склонение солнца~: %02.2f\u00B0""",
                 getMinSecFromSec(getEOT(gmt)),
                 inclination
         );
     }
 
-    public static String getTile10Moon(LocalDateTime time, double moonPhase, String zodiac) {
+    public static String getTile10Moon(LocalDateTime time, double moonPhase) {
         return String.format(
                 Locale.ENGLISH,
                 """
                         Лунное число: %d
                         Лунный день по лунному числу: %d
-                        
-                        Лунный день: %.2f (%.2f)
-                        Лунный знак зодиака: %s""",
+                                                
+                        Лунный день: %.2f (%.2f)""",
                 getMoonNumber(time.getYear()),
                 (getMoonNumber(time.getYear()) + time.getDayOfMonth() + time.getMonthValue()) % 30,
                 moonPhase,
-                MOON_PERIOD,
-                zodiac
+                MOON_PERIOD
+        );
+    }
+
+    public static String getTile11Zodiac(String moonSign) {
+        int day = Calendar.getInstance(TimeZone.getTimeZone("UTC")).get(Calendar.DAY_OF_YEAR);
+        return String.format(
+                Locale.ENGLISH,
+                """
+                        ЗОДИАК
+                        Лунный: %s
+                        Тропический: %s (%s)
+                        Сидерический: %s
+                        Астрономический: %s""",
+                moonSign,
+                getTropicalSign1(day),
+                getTropicalSign2(day),
+                getSiderealSign(day),
+                getAstronomicalSign(day)
         );
     }
 
