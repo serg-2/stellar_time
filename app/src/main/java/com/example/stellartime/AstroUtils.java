@@ -1,11 +1,6 @@
 package com.example.stellartime;
 
-import static java.lang.Math.PI;
-import static java.lang.Math.acos;
-import static java.lang.Math.asin;
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
-
+import static java.lang.Math.*;
 import static lombok.AccessLevel.PRIVATE;
 
 import android.util.Log;
@@ -17,6 +12,7 @@ import com.google.android.gms.maps.model.LatLng;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.util.Calendar;
+import java.util.TimeZone;
 
 import lombok.NoArgsConstructor;
 
@@ -66,68 +62,71 @@ public abstract class AstroUtils {
         return (((year - moonNumberStartYear) * 11) + moonNumberStartNumber) % 30;
     }
 
-    public static double getSunInclination(int julianDay) {
-        int day = julianDay - 2451545;
-        // Log.e("Day", " after 1 Jan 2000: " + day);
+    public static double getSunInclination(double julianDay) {
+        double tut = (julianDay - 2451545d) / 36525d;
 
         // средняя долгота Солнца - исправлeнная за аберрацию
-        double L = (280.472 + 0.9856474 * day);// в градусах
-        // Log.e("SUN", "Longitude: " + (280.472 + 0.9856474 * day));
+        double L = (280.460 + 36000.771 * tut); // в градусах
 
         // средняя аномалия
-        double g = (357.528 + 0.9856003 * day);// в градусах
+        double g = (357.5277233 + 35999.05034 * tut);// в градусах
         // Log.e("SUN", "Anomaly: " + (357.528 + 0.9856003 * day));
 
         // эклиптическая долгота
-        double eL = L + 1.915 * sin(g * PI / 180) + 0.02 * sin(2 * g * PI / 180);
-        // Log.e("SUN", "Ecliptical longitude: " + eL);
+        double eL = L + 1.914666471 * sin(toRadians(g)) + 0.019994643 * sin(toRadians(2 * g)); // в градусах
 
-        // наклонность эклиптики
-        double nakl = 23.439 - 0.0000004 * day;
-        // Wiki 23.4333333
-        // My   23.4353448
-        // Log.e("SUN", "Наклон эклиптики: " + nakl);
+        // наклон эклиптики
+        double nakl = 23.439291 - 0.0130042 * tut; // в градусах
 
         // синус склонения Солнца
-        double sinIncl = sin(nakl * PI / 180) * sin(eL * (PI / 180));
+        double sinIncl = sin(toRadians(nakl)) * sin(toRadians(eL));
 
         // Склонение Солнца и к градусам
-        return asin(sinIncl) * 180 / PI;
+        return toDegrees(asin(sinIncl));
     }
 
-    public static int getJulianDay(Calendar cal) {
-        int year = cal.get(Calendar.YEAR);
-        int month = cal.get(Calendar.MONTH) + 1; // NB: January returns 0
-        int date = cal.get(Calendar.DATE);
-        return (1461 * (year + 4800 + (month - 14) / 12)) / 4
-                + (367 * (month - 2 - 12 * ((month - 14) / 12))) / 12
-                - (3 * ((year + 4900 + (month - 14) / 12) / 100)) / 4 + date - 32075;
+    public static double getJulianDay() {
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH) + 1; // NB: January returns 0
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int min = calendar.get(Calendar.MINUTE);
+        int sec = calendar.get(Calendar.SECOND);
+        int msec = calendar.get(Calendar.MILLISECOND);
+
+        return 1721013.5 + 367 * year - floor((7d / 4d) * (year + floor((month + 9d) / 12d))) + floor(275d * month / 9d) + day + (60d * hour + min + (sec + msec / 1000d) / 60d) / 1440d;
     }
 
     public static double getSunHourAngle(double sunIncl, double latitude) {
-        // cosinus sun hour angle
-        double cosW = (sin(-0.0144) - sin(latitude * (PI / 180)) * sin(sunIncl * (PI / 180))) / (cos(latitude * (PI / 180)) * cos(sunIncl * (PI / 180)));
-        return 180 / PI * acos(cosW);
+        // cosinus sun hour angle. -0.83degree * PI / 180
+        double cosW = (sin(-0.014486233) - sin(toRadians(latitude)) * sin(toRadians(sunIncl))) / (cos(toRadians(latitude)) * cos(toRadians(sunIncl)));
+        return toDegrees(acos(cosW));
     }
 
     public static SunParameters getSunParameters(MutableLiveData<LatLng> coordinates, int timeZoneRawOffset, double eotSecs) {
         // Sun inclination
-        double sunInclination = getSunInclination(getJulianDay(Calendar.getInstance()));
+        double sunInclination = getSunInclination(getJulianDay());
         // Sun Hour Angle
         double hourAngleSun = getSunHourAngle(
                 sunInclination,
                 coordinates.getValue().latitude
         );
         // get NOON
-        LocalDateTime noon = LocalDateTime.parse("2024-01-01T12:00:00");
+        LocalDateTime noon = LocalDateTime.parse("2025-01-01T12:00:00");
         // At time zone
         LocalDateTime noonAtTimeZone = noon.plus(timeZoneRawOffset, ChronoField.MILLI_OF_DAY.getBaseUnit());
         // With longitude. 3600 * 1000 / 15 = 240000
         LocalDateTime meanNoon = noonAtTimeZone.minus((long) (coordinates.getValue().longitude * 240000), ChronoField.MILLI_OF_DAY.getBaseUnit());
         // With EOT
         LocalDateTime meanNoonEot = meanNoon.minus((long) (eotSecs * 1000), ChronoField.MILLI_OF_DAY.getBaseUnit());
-        LocalDateTime sunrise = meanNoonEot.minus((long) ((hourAngleSun / 15) * 3600 * 1000), ChronoField.MILLI_OF_DAY.getBaseUnit());
-        LocalDateTime sunset = meanNoonEot.plus((long) ((hourAngleSun / 15) * 3600 * 1000), ChronoField.MILLI_OF_DAY.getBaseUnit());
+
+        // SUNRISE SUNSET ------------------------
+        // W - msecs. (angle / 15) * 3600 * 1000 = 240000
+        long W = (long) (hourAngleSun * 240000);
+
+        LocalDateTime sunrise = meanNoonEot.minus(W, ChronoField.MILLI_OF_DAY.getBaseUnit());
+        LocalDateTime sunset = meanNoonEot.plus(W, ChronoField.MILLI_OF_DAY.getBaseUnit());
 
         return new SunParameters(
                 meanNoonEot,

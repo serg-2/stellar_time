@@ -2,6 +2,7 @@ package com.example.stellartime;
 
 import static com.example.stellartime.AstroUtils.getNP;
 
+import static java.lang.Math.*;
 import static lombok.AccessLevel.PRIVATE;
 
 import java.time.LocalDateTime;
@@ -22,18 +23,18 @@ public abstract class Helpers {
             month += 12;
         }
 
-        int a = (int) Math.floor(year / 100d);
-        int b = 2 - a + ((int) Math.floor((double) a / 4d));
-        return ((int) Math.floor(365.25 * (year + 4716))) + ((int) Math.floor(30.6001 * (month + 1))) + day + b - 1524.5;
+        int a = (int) floor(year / 100d);
+        int b = 2 - a + ((int) floor((double) a / 4d));
+        return ((int) floor(365.25 * (year + 4716))) + ((int) floor(30.6001 * (month + 1))) + day + b - 1524.5;
     }
 
     // Time in hours.
     public static String getClockString(double time) {
-        int intHour = (int) Math.floor(time);
+        int intHour = (int) floor(time);
         double realMin = (time - (double) intHour) * 60d;
-        int intMin = (int) Math.floor(realMin);
+        int intMin = (int) floor(realMin);
         double realSec = (realMin - (double) intMin) * 60d;
-        int intSec = (int) Math.floor(realSec);
+        int intSec = (int) floor(realSec);
         double dSec = (realSec - (double) intSec) * 10d;
 
         return String.format(
@@ -42,7 +43,7 @@ public abstract class Helpers {
                 intHour,
                 intMin,
                 intSec,
-                (int) Math.floor(dSec)
+                (int) floor(dSec)
         );
     }
 
@@ -58,7 +59,7 @@ public abstract class Helpers {
                 Locale.ENGLISH,
                 "%+dm %04.1fs",
                 mins,
-                Math.abs(equationValue) - ((Math.abs(mins) * 60))
+                abs(equationValue) - ((abs(mins) * 60))
         );
     }
 
@@ -68,11 +69,12 @@ public abstract class Helpers {
         double N = utcTime.getDayOfYear() + utcTime.getHour() / 24d + utcTime.getMinute() / (24d * 60d) + utcTime.getSecond() / (24d * 3600d);
 
         N = N - 1;
+
         // склонение Земли в радианах
-        double lambda = 23.4372d * Math.PI / 180d;
+        double lambda = toRadians(23.4372);
 
         // Угловая скорость полного оборота. рад/день
-        double omega = 2d * Math.PI / 365.25636;
+        double omega = 2d * PI / 365.25636;
 
         // Угол (средний). Число дней + 10, так как Солнечный год начинается 21 декабря.
         // Может 11 лучше ?
@@ -85,22 +87,51 @@ public abstract class Helpers {
 
         // угол элиптической орбиты от перигея (радианы)
         // под которым Земля движется от точки солнцестояния до угла даты D, поправку первого порядка на эксцентриситет Земли по орбите
-        double beta = alpha + 0.03340560188317d * Math.sin(omega * ((N - np + 365) % 365d));
+        double beta = alpha + 0.03340560188317d * sin(omega * ((N - np + 365) % 365d));
         // угловая коррекция
         // разница между углами, перемещаемыми со средней скоростью, и со скорректированной скоростью, проецируемой на экваториальную плоскость, и деленными на 180, чтобы получить разницу в «полуоборотах».
-        double gamma = (alpha - Math.atan(Math.tan(beta) / Math.cos(lambda))) / Math.PI;
+        double gamma = (alpha - atan(tan(beta) / cos(lambda))) / PI;
 
         // EOT in seconds.
-        return 43200d * (gamma - Math.round(gamma));
+        return 43200d * (gamma - round(gamma));
     }
 
     // In seconds
     // DEPRECATED
     public static double getEOTSimple(LocalDateTime utcTime) {
         double N = utcTime.getDayOfYear();
-        double B = 2 * Math.PI * (N - 81) / 365d;
-        double E = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
+        double B = 2 * PI * (N - 81) / 365d;
+        double E = 9.87 * sin(2 * B) - 7.53 * cos(B) - 1.5 * sin(B);
         return E * 60;
+    }
+
+    public static String getMoonZodiac(double L0) {
+        if (L0 < 33.18) {
+            return "Pisces";
+        } else if (L0 < 51.16) {
+            return "Aries";
+        } else if (L0 < 93.44) {
+            return "Taurus";
+        } else if (L0 < 119.48) {
+            return "Gemini";
+        } else if (L0 < 135.30) {
+            return "Cancer";
+        } else if (L0 < 173.34) {
+            return "Leo";
+        } else if (L0 < 224.17) {
+            return "Virgo";
+        } else if (L0 < 242.57) {
+            return "Libra";
+        } else if (L0 < 271.26) {
+            return "Scorpio";
+        } else if (L0 < 302.49) {
+            return "Sagittarius";
+        } else if (L0 < 311.72) {
+            return "Capricorn";
+        } else if (L0 < 348.58) {
+            return "Aquarius";
+        }
+        return "Pisces";
     }
 
 }

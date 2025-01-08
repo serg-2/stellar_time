@@ -13,9 +13,10 @@ public abstract class Constants {
     public static final int maxAgeOfEOTSecs = 60;
     public static final int updateGpsTimeSeconds = 60;
     public static final int updateClockTimeMillis = 50;
-    //public static final double naklonElkiptikiKEkvatoru = 23.439291111;
+    public static final double MOON_PERIOD = 29.53d;
     public static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss.S", Locale.ENGLISH);
     public static final DateTimeFormatter dtfWhole = DateTimeFormatter.ofPattern("HH:mm:ss", Locale.ENGLISH);
 
     public static final String MSG_KEY = "message_key";
+
 }

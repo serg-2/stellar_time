@@ -1,19 +1,23 @@
 package com.example.stellartime;
 
+import static com.example.stellartime.AstroUtils.getJulianDay;
 import static com.example.stellartime.AstroUtils.getSunParameters;
+import static com.example.stellartime.Constants.MOON_PERIOD;
 import static com.example.stellartime.Constants.MSG_KEY;
 import static com.example.stellartime.Constants.updateClockTimeMillis;
 import static com.example.stellartime.Constants.updateGpsTimeSeconds;
 import static com.example.stellartime.Helpers.getClockString;
+import static com.example.stellartime.Helpers.getMoonZodiac;
 import static com.example.stellartime.Tiles.getTile1LocalTime;
 import static com.example.stellartime.Tiles.getTile2MeanSolarTime;
 import static com.example.stellartime.Tiles.getTile3LocalSiderealTime;
 import static com.example.stellartime.Tiles.getTile4GMTAndBeatsTime;
 import static com.example.stellartime.Tiles.getTile5TrueSolarTime;
 import static com.example.stellartime.Tiles.getTile6GreenwichSiderealTime;
-import static com.example.stellartime.Tiles.getTile7LocationAndSun;
-import static com.example.stellartime.Tiles.getTile8EOT;
-import static com.example.stellartime.Tiles.getTile9Text;
+import static com.example.stellartime.Tiles.getTile7Location;
+import static com.example.stellartime.Tiles.getTile8Solar;
+import static com.example.stellartime.Tiles.getTile9EOT;
+import static com.example.stellartime.Tiles.getTile10Moon;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -180,31 +184,41 @@ public class MainActivity extends AppCompatActivity {
 
     private void onTimeChanged() {
         LocalDateTime time = LocalDateTime.now();
-        // GMT time -----------------------------------------------
-        LocalDateTime gmt = time.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+        // UTC time -----------------------------------------------
+        LocalDateTime utc = time.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
 
         // Sunrise, sunset, noon, inclination, sun hour angle
-        SunParameters sunParameters = getSunParameters(location, TimeZone.getDefault().getRawOffset(), eot.getSecs(gmt));
+        SunParameters sunParameters = getSunParameters(location, TimeZone.getDefault().getRawOffset(), eot.getSecs(utc));
         // Mean Solar time ----------------------------------------
         // 3600 * 1000 / 15 = 240000
-        LocalDateTime meanSolarTime = gmt.plus((long) (location.getValue().longitude * 240000), ChronoField.MILLI_OF_DAY.getBaseUnit());
+        LocalDateTime meanSolarTime = utc.plus((long) (location.getValue().longitude * 240000), ChronoField.MILLI_OF_DAY.getBaseUnit());
         // Local SiderealTime
-        String localSiderealTime = getClockString((gst.get(gmt) + location.getValue().longitude) % 360 / 15);
+        String localSiderealTime = getClockString((gst.get(utc) + location.getValue().longitude) % 360 / 15);
         // True Solar time ----------------------------------------
         // Equation of Time. Cast to long for plusSeconds function
-        // True solar time
-        LocalDateTime trueSolarTime = meanSolarTime.plus((long) (eot.getSecs(gmt) * 1000), ChronoField.MILLI_OF_DAY.getBaseUnit());
+        LocalDateTime trueSolarTime = meanSolarTime.plus((long) (eot.getSecs(utc) * 1000), ChronoField.MILLI_OF_DAY.getBaseUnit());
+
+        // MOON
+        double moonFullPhase = (getJulianDay() - 2451550.1) / 29.530588853;
+        double moonPhase = (moonFullPhase % 1) * MOON_PERIOD;
+        // Moon Zodiac. moon's ecliptic longitude
+        double RP = ((getJulianDay() - 2451555.8d) / 27.321582241d) % 1;
+        double DP = 2 * Math.PI * (((getJulianDay() - 2451562.2 ) / 27.55454988) % 1);
+        double IP = 2 * Math.PI * (moonFullPhase % 1);
+        double L = 360 * RP + 6.3 * Math.sin( DP ) + 1.3 * Math.sin(2*IP - DP) + 0.7 * Math.sin(2*IP);
+        String zodiac = getMoonZodiac(L);
 
         // OUTPUT ----------------------------------------------------------
         sendMessage(R.id.localtime, getTile1LocalTime(time));
         sendMessage(R.id.msolartime, getTile2MeanSolarTime(meanSolarTime));
         sendMessage(R.id.lstime, getTile3LocalSiderealTime(localSiderealTime));
-        sendMessage(R.id.gmttime, getTile4GMTAndBeatsTime(time, gmt, sunParameters.getNoon()));
+        sendMessage(R.id.gmttime, getTile4GMTAndBeatsTime(time, utc));
         sendMessage(R.id.tsolartime, getTile5TrueSolarTime(trueSolarTime));
-        sendMessage(R.id.gstime, getTile6GreenwichSiderealTime(gst, gmt));
-        sendMessage(R.id.coordinates, getTile7LocationAndSun(location, sunParameters, getLocationString()));
-        sendMessage(R.id.eot, getTile8EOT(gmt));
-        sendMessage(R.id.tile9, getTile9Text(time, sunParameters));
+        sendMessage(R.id.gstime, getTile6GreenwichSiderealTime(gst, utc));
+        sendMessage(R.id.coordinates, getTile7Location(location, getLocationString()));
+        sendMessage(R.id.tsolaradd, getTile8Solar(sunParameters));
+        sendMessage(R.id.eot, getTile9EOT(utc, sunParameters.getSunInclination()));
+        sendMessage(R.id.moon, getTile10Moon(time, moonPhase, zodiac));
     }
 
     private String getLocationString() {

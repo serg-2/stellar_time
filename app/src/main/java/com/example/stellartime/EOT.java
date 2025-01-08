@@ -2,7 +2,6 @@ package com.example.stellartime;
 
 import static com.example.stellartime.Constants.maxAgeOfEOTSecs;
 import static com.example.stellartime.Helpers.getEOT;
-import static com.example.stellartime.Helpers.getEOTSimple;
 
 import android.util.Log;
 
